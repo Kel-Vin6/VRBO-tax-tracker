@@ -59,10 +59,18 @@ public final class AppLockService {
             return
         }
         switch context.biometryType {
-        case .faceID: biometry = .faceID
-        case .touchID: biometry = .touchID
-        case .opticID: biometry = .opticID
-        default: biometry = .passcode
+        case .faceID:
+            biometry = .faceID
+        case .touchID:
+            biometry = .touchID
+        default:
+            // Optic ID is only present on visionOS, so it is resolved by
+            // platform rather than by a case that other SDKs may not define.
+            #if os(visionOS)
+            biometry = .opticID
+            #else
+            biometry = .passcode
+            #endif
         }
     }
 

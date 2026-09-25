@@ -92,12 +92,9 @@ struct ScenarioLabView: View {
                 stateRatePercent: settings.stateRatePercent
             )
         case .rateIncrease:
-            let currentGross = report.totalRents
-            let uplift = currentGross.applying(percent: rateIncreasePercent.clampedPercent)
-            return ScenarioEngine.extraBookings(
-                nights: 1,
-                averageDailyRate: uplift,
-                variableCostPerNight: 0,
+            return ScenarioEngine.rateIncrease(
+                percent: rateIncreasePercent,
+                currentGrossRents: report.totalRents,
                 platformFeePercent: metrics.feeDragPercent,
                 marginalRatePercent: marginalRate,
                 stateRatePercent: settings.stateRatePercent

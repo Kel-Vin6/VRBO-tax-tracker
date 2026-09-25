@@ -191,6 +191,43 @@ public enum ScenarioEngine {
         )
     }
 
+    /// What a rate rise is worth once the platform and the tax authorities have
+    /// taken their share. Occupancy is assumed to hold, which is the
+    /// assumption worth arguing about.
+    public static func rateIncrease(
+        percent: Double,
+        currentGrossRents: Decimal,
+        platformFeePercent: Double,
+        marginalRatePercent: Double,
+        stateRatePercent: Double
+    ) -> ScenarioResult {
+        let combinedRate = (marginalRatePercent + stateRatePercent).clampedPercent
+        let additionalRent = currentGrossRents.applying(percent: percent.clampedPercent)
+        let additionalFees = additionalRent.applying(percent: platformFeePercent.clampedPercent)
+        let pretax = additionalRent - additionalFees
+        let tax = max(0, pretax).applying(percent: combinedRate)
+        let afterTax = pretax - tax
+
+        return ScenarioResult(
+            headline: "A \(Fmt.percent(percent)) rise keeps \(Fmt.currency(afterTax))",
+            netIncomeChange: pretax,
+            taxChange: tax,
+            afterTaxChange: afterTax,
+            effectiveCostOrBenefit: afterTax,
+            explanation: "Raising your rates \(Fmt.percent(percent)) across the same bookings adds \(Fmt.currency(additionalRent)) of rent. The platform takes \(Fmt.currency(additionalFees)) of it and tax takes \(Fmt.currency(tax)), leaving \(Fmt.currency(afterTax)). It assumes occupancy holds — if the rise costs you even a few nights, compare it against the extra-nights scenario before deciding.",
+            warnings: currentGrossRents <= 0
+                ? ["There are no rents recorded for this year yet, so there is nothing to apply the increase to."]
+                : [],
+            breakdown: [
+                ReconciliationLine(id: "base", label: "Current gross rents", amount: currentGrossRents, detail: "This year, as recorded."),
+                ReconciliationLine(id: "uplift", label: "Additional rent", amount: additionalRent, detail: "At the same occupancy."),
+                ReconciliationLine(id: "fees", label: "Platform fees", amount: -additionalFees, detail: "\(Fmt.percent(platformFeePercent)) of the increase."),
+                ReconciliationLine(id: "tax", label: "Income tax", amount: -tax, detail: "\(Fmt.percent(combinedRate)) marginal."),
+                ReconciliationLine(id: "net", label: "Kept", amount: afterTax, detail: "What the rise is actually worth.", isSubtotal: true)
+            ]
+        )
+    }
+
     /// What blocking the calendar for yourself costs — in lost rent, and in the
     /// deductions the §280A allocation takes away.
     public static func personalUse(
