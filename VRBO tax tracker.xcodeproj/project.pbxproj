@@ -254,6 +254,9 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Used to scan receipts and documents with the camera. Images stay on this device.";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Used to unlock your tax records.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Used to attach a receipt photo to an expense.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -298,6 +301,9 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Used to scan receipts and documents with the camera. Images stay on this device.";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Used to unlock your tax records.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Used to attach a receipt photo to an expense.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
