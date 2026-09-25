@@ -10,19 +10,19 @@
 import Foundation
 
 public struct CSVTable: Sendable {
-    public var headers: [String]
-    public var rows: [[String]]
+    public nonisolated var headers: [String]
+    public nonisolated var rows: [[String]]
 
-    public var isEmpty: Bool { rows.isEmpty }
+    public nonisolated var isEmpty: Bool { rows.isEmpty }
 
-    public func value(_ row: [String], at index: Int?) -> String {
+    public nonisolated func value(_ row: [String], at index: Int?) -> String {
         guard let index, index >= 0, index < row.count else { return "" }
         return row[index].trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     /// Index of the first header matching any of the supplied candidates,
     /// compared case- and punctuation-insensitively.
-    public func columnIndex(matching candidates: [String]) -> Int? {
+    public nonisolated func columnIndex(matching candidates: [String]) -> Int? {
         let normalizedHeaders = headers.map(CSVParser.normalize)
         for candidate in candidates {
             let needle = CSVParser.normalize(candidate)
@@ -38,13 +38,13 @@ public struct CSVTable: Sendable {
 
 public enum CSVParser {
 
-    public static func normalize(_ text: String) -> String {
+    public nonisolated static func normalize(_ text: String) -> String {
         text.lowercased()
             .components(separatedBy: CharacterSet.alphanumerics.inverted)
             .joined()
     }
 
-    public static func parse(_ text: String, delimiter: Character = ",") -> CSVTable {
+    public nonisolated static func parse(_ text: String, delimiter: Character = ",") -> CSVTable {
         var rows: [[String]] = []
         var currentRow: [String] = []
         var currentField = ""
@@ -122,14 +122,14 @@ public enum CSVParser {
     }
 
     /// Escapes a value for output, quoting only when it has to.
-    public static func escape(_ value: String) -> String {
+    public nonisolated static func escape(_ value: String) -> String {
         let needsQuoting = value.contains(",") || value.contains("\"")
             || value.contains("\n") || value.contains("\r")
         guard needsQuoting else { return value }
         return "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
     }
 
-    public static func line(_ values: [String]) -> String {
+    public nonisolated static func line(_ values: [String]) -> String {
         values.map(escape).joined(separator: ",")
     }
 
@@ -137,7 +137,7 @@ public enum CSVParser {
 
     /// Parses money written the many ways a platform export writes it:
     /// "$1,234.56", "(45.00)", "1.234,56 €", "-", "".
-    public static func decimal(_ raw: String) -> Decimal? {
+    public nonisolated static func decimal(_ raw: String) -> Decimal? {
         var text = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty, text != "-", text != "—" else { return nil }
 
@@ -191,7 +191,7 @@ public enum CSVParser {
         "MM/dd/yy"
     ]
 
-    public static func date(_ raw: String) -> Date? {
+    public nonisolated static func date(_ raw: String) -> Date? {
         let text = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return nil }
 
@@ -205,7 +205,7 @@ public enum CSVParser {
         return ISO8601DateFormatter().date(from: text)
     }
 
-    public static func integer(_ raw: String) -> Int? {
+    public nonisolated static func integer(_ raw: String) -> Int? {
         let digits = raw.filter { $0.isNumber || $0 == "-" }
         return Int(digits)
     }

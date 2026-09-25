@@ -11,10 +11,10 @@ import Foundation
 public extension Decimal {
 
     /// Lossy conversion used only for charting and ratio math, never for money storage.
-    var doubleValue: Double { NSDecimalNumber(decimal: self).doubleValue }
+    nonisolated var doubleValue: Double { NSDecimalNumber(decimal: self).doubleValue }
 
     /// Bankers-safe rounding to a fixed number of fraction digits.
-    func rounded(_ scale: Int = 2, mode: NSDecimalNumber.RoundingMode = .plain) -> Decimal {
+    nonisolated func rounded(_ scale: Int = 2, mode: NSDecimalNumber.RoundingMode = .plain) -> Decimal {
         var source = self
         var result = Decimal()
         NSDecimalRound(&result, &source, scale, mode)
@@ -22,34 +22,34 @@ public extension Decimal {
     }
 
     /// Whole-dollar rounding used on tax forms (the IRS permits dollar rounding).
-    var wholeDollars: Decimal { rounded(0) }
+    nonisolated var wholeDollars: Decimal { rounded(0) }
 
-    var isPositive: Bool { self > 0 }
-    var isNegative: Bool { self < 0 }
+    nonisolated var isPositive: Bool { self > 0 }
+    nonisolated var isNegative: Bool { self < 0 }
 
     /// `self` as a percentage of `total`, guarding against divide-by-zero.
-    func share(of total: Decimal) -> Decimal {
+    nonisolated func share(of total: Decimal) -> Decimal {
         guard total != 0 else { return 0 }
         return (self / total)
     }
 
     /// Multiplies by a 0...100 percentage without floating point drift.
-    func applying(percent: Double) -> Decimal {
+    nonisolated func applying(percent: Double) -> Decimal {
         guard percent != 100 else { return self }
         let factor = Decimal(percent) / 100
         return (self * factor).rounded(2)
     }
 
-    static func fromDouble(_ value: Double, scale: Int = 2) -> Decimal {
+    nonisolated static func fromDouble(_ value: Double, scale: Int = 2) -> Decimal {
         Decimal(value).rounded(scale)
     }
 }
 
 public extension Sequence where Element == Decimal {
-    var total: Decimal { reduce(Decimal.zero, +) }
+    nonisolated var total: Decimal { reduce(Decimal.zero, +) }
 }
 
 public extension Double {
     /// Clamps a percentage entered by a user into a sane 0...100 range.
-    var clampedPercent: Double { Swift.min(Swift.max(self, 0), 100) }
+    nonisolated var clampedPercent: Double { Swift.min(Swift.max(self, 0), 100) }
 }

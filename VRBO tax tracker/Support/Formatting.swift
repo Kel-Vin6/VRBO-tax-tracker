@@ -8,7 +8,7 @@ import SwiftUI
 
 public enum Fmt {
 
-    public static func currency(_ value: Decimal, code: String = "USD", hideCents: Bool = false) -> String {
+    public nonisolated static func currency(_ value: Decimal, code: String = "USD", hideCents: Bool = false) -> String {
         if hideCents {
             return value.rounded(0).formatted(.currency(code: code).precision(.fractionLength(0)))
         }
@@ -16,7 +16,7 @@ public enum Fmt {
     }
 
     /// Compact money for dense tiles: $12.4K, $1.2M.
-    public static func compactCurrency(_ value: Decimal, code: String = "USD") -> String {
+    public nonisolated static func compactCurrency(_ value: Decimal, code: String = "USD") -> String {
         let symbol = currencySymbol(for: code)
         let magnitude = abs(value.doubleValue)
         let sign = value < 0 ? "-" : ""
@@ -30,46 +30,46 @@ public enum Fmt {
         }
     }
 
-    public static func currencySymbol(for code: String) -> String {
+    public nonisolated static func currencySymbol(for code: String) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
         formatter.currencyCode = code
         return formatter.currencySymbol ?? code
     }
 
-    public static func percent(_ value: Double, fractionDigits: Int = 1) -> String {
+    public nonisolated static func percent(_ value: Double, fractionDigits: Int = 1) -> String {
         (value / 100).formatted(.percent.precision(.fractionLength(0...fractionDigits)))
     }
 
-    public static func ratioPercent(_ ratio: Double, fractionDigits: Int = 1) -> String {
+    public nonisolated static func ratioPercent(_ ratio: Double, fractionDigits: Int = 1) -> String {
         ratio.formatted(.percent.precision(.fractionLength(0...fractionDigits)))
     }
 
-    public static func number(_ value: Double, fractionDigits: Int = 1) -> String {
+    public nonisolated static func number(_ value: Double, fractionDigits: Int = 1) -> String {
         value.formatted(.number.precision(.fractionLength(0...fractionDigits)))
     }
 
-    public static func miles(_ value: Double) -> String {
+    public nonisolated static func miles(_ value: Double) -> String {
         "\(value.formatted(.number.precision(.fractionLength(0...1)))) mi"
     }
 
-    public static func hours(_ value: Double) -> String {
+    public nonisolated static func hours(_ value: Double) -> String {
         "\(value.formatted(.number.precision(.fractionLength(0...1)))) h"
     }
 
-    public static func shortDate(_ date: Date) -> String {
+    public nonisolated static func shortDate(_ date: Date) -> String {
         date.formatted(.dateTime.month(.abbreviated).day().year())
     }
 
-    public static func mediumDate(_ date: Date) -> String {
+    public nonisolated static func mediumDate(_ date: Date) -> String {
         date.formatted(.dateTime.month(.wide).day().year())
     }
 
-    public static func dayMonth(_ date: Date) -> String {
+    public nonisolated static func dayMonth(_ date: Date) -> String {
         date.formatted(.dateTime.month(.abbreviated).day())
     }
 
-    public static func fileStamp(_ date: Date = Date()) -> String {
+    public nonisolated static func fileStamp(_ date: Date = Date()) -> String {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd-HHmmss"
         f.locale = Locale(identifier: "en_US_POSIX")
@@ -77,7 +77,7 @@ public enum Fmt {
     }
 
     /// ISO-8601 calendar date, used in every CSV the app writes.
-    public static func isoDate(_ date: Date) -> String {
+    public nonisolated static func isoDate(_ date: Date) -> String {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd"
         f.locale = Locale(identifier: "en_US_POSIX")
@@ -87,7 +87,7 @@ public enum Fmt {
 }
 
 public extension Color {
-    init?(hex: String) {
+    nonisolated init?(hex: String) {
         var cleaned = hex.trimmingCharacters(in: .whitespacesAndNewlines)
         if cleaned.hasPrefix("#") { cleaned.removeFirst() }
         guard cleaned.count == 6, let value = UInt64(cleaned, radix: 16) else { return nil }
@@ -103,17 +103,17 @@ public extension Color {
 
 /// The palette a user picks from when colour-coding a property.
 public enum PropertyPalette {
-    public static let hexes: [String] = [
+    public nonisolated static let hexes: [String] = [
         "2E7D8F", "3A7D5D", "B4703A", "8B5E9B",
         "C05B4D", "4A6FA5", "7A8B3F", "9B6B4A",
         "5C6B8A", "A34A6B"
     ]
 
-    public static func color(for hex: String) -> Color {
+    public nonisolated static func color(for hex: String) -> Color {
         Color(hex: hex) ?? .accentColor
     }
 
-    public static func hex(forIndex index: Int) -> String {
+    public nonisolated static func hex(forIndex index: Int) -> String {
         hexes[abs(index) % hexes.count]
     }
 }

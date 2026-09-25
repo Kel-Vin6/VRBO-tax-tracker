@@ -315,10 +315,18 @@ public enum ExpenseCategory: String, Codable, CaseIterable, Identifiable, Sendab
         self == .travelMeals ? 50 : 100
     }
 
-    public static var grouped: [(line: ScheduleELine, categories: [ExpenseCategory])] {
+    /// Categories bundled under the Schedule E line they report on, which is
+    /// how the category picker is organised.
+    public struct Group: Identifiable, Hashable, Sendable {
+        public var line: ScheduleELine
+        public var categories: [ExpenseCategory]
+        public var id: Int { line.rawValue }
+    }
+
+    public static var grouped: [Group] {
         ScheduleELine.allCases.compactMap { line in
             let matches = ExpenseCategory.allCases.filter { $0.scheduleELine == line }
-            return matches.isEmpty ? nil : (line, matches)
+            return matches.isEmpty ? nil : Group(line: line, categories: matches)
         }
     }
 }

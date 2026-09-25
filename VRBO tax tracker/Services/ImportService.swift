@@ -293,7 +293,7 @@ public enum ImportService {
 /// stops reading the category field.
 public enum CategoryGuesser {
 
-    private static let rules: [(keywords: [String], category: ExpenseCategory)] = [
+    private nonisolated static let rules: [(keywords: [String], category: ExpenseCategory)] = [
         (["airbnb service", "host service fee", "vrbo commission", "booking.com commission"], .platformHostFee),
         (["stripe", "square fee", "paypal fee", "processing fee"], .paymentProcessingFee),
         (["turno", "properly", "maid", "cleaning", "housekeep", "cleaner"], .cleaningService),
@@ -338,7 +338,7 @@ public enum CategoryGuesser {
         (["marriott", "hilton", "hyatt", "motel"], .travelLodging)
     ]
 
-    public static func guess(vendor: String, hint: String = "") -> ExpenseCategory? {
+    public nonisolated static func guess(vendor: String, hint: String = "") -> ExpenseCategory? {
         let haystack = "\(vendor) \(hint)".lowercased()
         guard !haystack.trimmingCharacters(in: .whitespaces).isEmpty else { return nil }
 
