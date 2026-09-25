@@ -47,12 +47,20 @@ struct BookingsView: View {
         }
     }
 
-    private var grouped: [(month: Date, bookings: [Booking])] {
+    private struct MonthGroup: Identifiable {
+        let id: Date
+        let bookings: [Booking]
+        var month: Date { id }
+    }
+
+    private var grouped: [MonthGroup] {
         let groups = Dictionary(grouping: filtered) { booking -> Date in
             let components = DateMath.calendar.dateComponents([.year, .month], from: booking.checkIn)
             return DateMath.calendar.date(from: components) ?? booking.checkIn
         }
-        return groups.keys.sorted(by: >).map { ($0, groups[$0]?.sorted { $0.checkIn > $1.checkIn } ?? []) }
+        return groups.keys.sorted(by: >).map { key in
+            MonthGroup(id: key, bookings: groups[key]?.sorted { $0.checkIn > $1.checkIn } ?? [])
+        }
     }
 
     private var totals: (gross: Decimal, fees: Decimal, nights: Int) {
@@ -102,7 +110,7 @@ struct BookingsView: View {
                 }
             }
 
-            ForEach(grouped, id: \.month) { group in
+            ForEach(grouped) { group in
                 Section {
                     ForEach(group.bookings) { booking in
                         Button {

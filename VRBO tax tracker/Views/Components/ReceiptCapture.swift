@@ -124,6 +124,9 @@ struct ReceiptAttachmentView: View {
     @Binding var data: Data?
     @Binding var fileName: String
     var onRecognized: ((ScannedReceipt) -> Void)?
+    /// Opens the document scanner as soon as the view appears, for the
+    /// "scan a receipt" quick action.
+    var autoStartScanner: Bool = false
 
     @State private var photoItem: PhotosPickerItem?
     @State private var isScanning = false
@@ -195,6 +198,13 @@ struct ReceiptAttachmentView: View {
                     .font(.caption)
                     .foregroundStyle(.orange)
             }
+        }
+        .onAppear {
+            #if os(iOS)
+            if autoStartScanner, data == nil, isDocumentScannerAvailable {
+                showingScanner = true
+            }
+            #endif
         }
         .onChange(of: photoItem) { _, item in
             guard let item else { return }

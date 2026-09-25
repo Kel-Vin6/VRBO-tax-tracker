@@ -24,9 +24,22 @@ struct DepreciationView: View {
 
     private var year: Int { appState.taxYear }
 
-    private var entries: [(property: Property, schedule: DepreciationSchedule)] {
+    /// One depreciating item, paired with the property it belongs to.
+    private struct Entry: Identifiable {
+        let id: UUID
+        let propertyName: String
+        let schedule: DepreciationSchedule
+    }
+
+    private var entries: [Entry] {
         properties.flatMap { property in
-            property.allDepreciationSpecs.map { (property, DepreciationEngine.schedule(for: $0)) }
+            property.allDepreciationSpecs.map {
+                Entry(
+                    id: $0.id,
+                    propertyName: property.displayName,
+                    schedule: DepreciationEngine.schedule(for: $0)
+                )
+            }
         }
     }
 
@@ -66,8 +79,8 @@ struct DepreciationView: View {
                         InfoCallout(level: .caution, title: "Mid-quarter convention", message: warning)
                     }
                     projectionCard
-                    ForEach(Array(entries.enumerated()), id: \.offset) { _, entry in
-                        scheduleCard(entry.property, entry.schedule)
+                    ForEach(entries) { entry in
+                        scheduleCard(entry.propertyName, entry.schedule)
                     }
                     methodNotes
                 }
@@ -78,7 +91,7 @@ struct DepreciationView: View {
         }
         .navigationTitle("Depreciation")
         .inlineNavigationTitle()
-        .toolbar { ToolbarItem(placement: .principal) { YearMenu() } }
+        .toolbar { ToolbarItem(placement: .primaryAction) { YearMenu() } }
     }
 
     private var summaryCard: some View {
@@ -146,10 +159,10 @@ struct DepreciationView: View {
         }
     }
 
-    private func scheduleCard(_ property: Property, _ schedule: DepreciationSchedule) -> some View {
+    private func scheduleCard(_ propertyName: String, _ schedule: DepreciationSchedule) -> some View {
         SectionCard(
             schedule.spec.name,
-            subtitle: "\(property.displayName) · \(Fmt.number(schedule.spec.recoveryYears))-year \(schedule.spec.assetClass.title.lowercased())",
+            subtitle: "\(propertyName) · \(Fmt.number(schedule.spec.recoveryYears))-year \(schedule.spec.assetClass.title.lowercased())",
             symbol: schedule.spec.assetClass.symbol
         ) {
             VStack(spacing: 10) {

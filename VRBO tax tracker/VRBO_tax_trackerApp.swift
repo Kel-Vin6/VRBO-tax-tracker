@@ -76,7 +76,7 @@ struct VRBO_tax_trackerApp: App {
 
         #if os(macOS)
         Settings {
-            SettingsView()
+            NavigationStack { SettingsView() }
                 .environment(settings)
                 .environment(appState)
                 .environment(lock)

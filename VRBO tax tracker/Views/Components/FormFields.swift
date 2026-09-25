@@ -241,7 +241,8 @@ public struct LiveSummaryStrip: View {
 
     public var body: some View {
         HStack(spacing: 0) {
-            ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+            ForEach(items.indices, id: \.self) { index in
+                let item = items[index]
                 if index > 0 { Divider().frame(height: 26) }
                 VStack(spacing: 2) {
                     Text(item.value)

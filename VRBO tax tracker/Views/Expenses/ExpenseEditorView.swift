@@ -101,14 +101,16 @@ struct ExpenseEditorView: View {
             }
             .onAppear(perform: load)
             .sheet(isPresented: $showingImprovementAdvisor) {
-                ImprovementAdvisorView(
-                    amount: amount,
-                    descriptionText: "\(vendor) \(notes)",
-                    property: property,
-                    buildingSpendThisYear: buildingSpendThisYear
-                ) { shouldCapitalize in
-                    isCapitalImprovement = shouldCapitalize
-                    if !shouldCapitalize { deMinimisElected = amount <= 2_500 }
+                NavigationStack {
+                    ImprovementAdvisorView(
+                        amount: amount,
+                        descriptionText: "\(vendor) \(notes)",
+                        property: property,
+                        buildingSpendThisYear: buildingSpendThisYear
+                    ) { shouldCapitalize in
+                        isCapitalImprovement = shouldCapitalize
+                        if !shouldCapitalize { deMinimisElected = amount <= 2_500 }
+                    }
                 }
             }
             .confirmationDialog(
@@ -244,10 +246,10 @@ struct ExpenseEditorView: View {
         Section {
             ReceiptAttachmentView(
                 data: $receiptData,
-                fileName: $receiptFileName
-            ) { scanned in
-                apply(scanned)
-            }
+                fileName: $receiptFileName,
+                onRecognized: { scanned in apply(scanned) },
+                autoStartScanner: startWithScanner
+            )
             if let scannerHint {
                 Text(scannerHint)
                     .font(.caption2)

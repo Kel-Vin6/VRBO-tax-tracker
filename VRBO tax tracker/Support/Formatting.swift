@@ -8,7 +8,17 @@ import SwiftUI
 
 public enum Fmt {
 
-    public nonisolated static func currency(_ value: Decimal, code: String = "USD", hideCents: Bool = false) -> String {
+    /// Used where a figure is formatted outside a view that knows the user's
+    /// chosen currency, such as an explanatory string built by an engine.
+    public nonisolated static var defaultCurrencyCode: String {
+        Locale.current.currency?.identifier ?? "USD"
+    }
+
+    public nonisolated static func currency(
+        _ value: Decimal,
+        code: String = Fmt.defaultCurrencyCode,
+        hideCents: Bool = false
+    ) -> String {
         if hideCents {
             return value.rounded(0).formatted(.currency(code: code).precision(.fractionLength(0)))
         }
@@ -16,7 +26,10 @@ public enum Fmt {
     }
 
     /// Compact money for dense tiles: $12.4K, $1.2M.
-    public nonisolated static func compactCurrency(_ value: Decimal, code: String = "USD") -> String {
+    public nonisolated static func compactCurrency(
+        _ value: Decimal,
+        code: String = Fmt.defaultCurrencyCode
+    ) -> String {
         let symbol = currencySymbol(for: code)
         let magnitude = abs(value.doubleValue)
         let sign = value < 0 ? "-" : ""

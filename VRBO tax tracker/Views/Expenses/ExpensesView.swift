@@ -72,12 +72,20 @@ struct ExpensesView: View {
         }
     }
 
-    private var grouped: [(month: Date, expenses: [Expense])] {
+    private struct MonthGroup: Identifiable {
+        let id: Date
+        let expenses: [Expense]
+        var month: Date { id }
+    }
+
+    private var grouped: [MonthGroup] {
         let groups = Dictionary(grouping: filtered) { expense -> Date in
             let components = DateMath.calendar.dateComponents([.year, .month], from: expense.date)
             return DateMath.calendar.date(from: components) ?? expense.date
         }
-        return groups.keys.sorted(by: >).map { ($0, groups[$0]?.sorted { $0.date > $1.date } ?? []) }
+        return groups.keys.sorted(by: >).map { key in
+            MonthGroup(id: key, expenses: groups[key]?.sorted { $0.date > $1.date } ?? [])
+        }
     }
 
     private var pendingRules: [RecurringExpenseRule] {
@@ -183,7 +191,7 @@ struct ExpensesView: View {
                 }
             }
 
-            ForEach(grouped, id: \.month) { group in
+            ForEach(grouped) { group in
                 Section {
                     ForEach(group.expenses) { expense in
                         Button { editing = expense } label: {
