@@ -116,6 +116,33 @@ public var isDocumentScannerAvailable: Bool { VNDocumentCameraViewController.isS
 public var isDocumentScannerAvailable: Bool { false }
 #endif
 
+// MARK: - Conditional scanner presentation
+
+extension View {
+    /// Presents the system document scanner where the platform provides one,
+    /// and does nothing where it does not. Keeping the conditional inside a
+    /// function body avoids putting `#if` in the middle of a modifier chain.
+    @ViewBuilder
+    func documentScannerCover(
+        isPresented: Binding<Bool>,
+        onScan: @escaping (Data) -> Void
+    ) -> some View {
+        #if os(iOS)
+        fullScreenCover(isPresented: isPresented) {
+            DocumentScannerView { pages in
+                isPresented.wrappedValue = false
+                if let first = pages.first { onScan(first) }
+            } onCancel: {
+                isPresented.wrappedValue = false
+            }
+            .ignoresSafeArea()
+        }
+        #else
+        self
+        #endif
+    }
+}
+
 // MARK: - Attachment control
 
 /// The receipt slot used by the expense editor and the document vault.
@@ -216,20 +243,11 @@ struct ReceiptAttachmentView: View {
                 }
             }
         }
-        #if os(iOS)
-        .fullScreenCover(isPresented: $showingScanner) {
-            DocumentScannerView { pages in
-                showingScanner = false
-                guard let first = pages.first else { return }
-                data = first
-                fileName = "scan-\(Fmt.fileStamp()).jpg"
-                Task { await recognize(first) }
-            } onCancel: {
-                showingScanner = false
-            }
-            .ignoresSafeArea()
+        .documentScannerCover(isPresented: $showingScanner) { scanned in
+            data = scanned
+            fileName = "scan-\(Fmt.fileStamp()).jpg"
+            Task { await recognize(scanned) }
         }
-        #endif
         .sheet(isPresented: $showingFullScreen) {
             if let data {
                 NavigationStack {
