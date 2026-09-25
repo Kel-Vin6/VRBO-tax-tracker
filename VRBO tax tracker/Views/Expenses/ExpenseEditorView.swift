@@ -15,6 +15,7 @@ struct ExpenseEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
     @Environment(AppSettings.self) private var settings
+    @Environment(NotificationService.self) private var notifications
 
     @Query(sort: \Property.sortIndex) private var properties: [Property]
     @Query private var allExpenses: [Expense]
@@ -360,6 +361,22 @@ struct ExpenseEditorView: View {
         target.touch()
 
         try? context.save()
+
+        if settings.notifyMissingReceipts,
+           receiptData == nil,
+           amount >= AuditReadinessEngine.receiptThreshold {
+            let vendorName = target.displayVendor
+            let total = amount
+            let code = settings.currencyCode
+            Task {
+                await notifications.remindMissingReceipt(
+                    vendor: vendorName,
+                    amount: total,
+                    currencyCode: code
+                )
+            }
+        }
+
         Haptics.play(.success)
         dismiss()
     }

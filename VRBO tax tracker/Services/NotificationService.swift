@@ -129,11 +129,12 @@ public final class NotificationService {
         await refreshStatus()
     }
 
-    /// Permits and policies, warned at 60, 30 and 7 days.
+    /// Permits and policies, warned at 60, 30 and 7 days. Only the reminders
+    /// belonging to the properties passed in are replaced, so rescheduling one
+    /// property never silently clears another's.
     public func schedulePermitReminders(for properties: [Property]) async {
-        await cancel(withPrefix: NotificationCategoryID.permitExpiry)
-
         for property in properties {
+            await cancel(withPrefix: "\(NotificationCategoryID.permitExpiry).\(property.id.uuidString)")
             let items: [(String, Date?)] = [
                 ("short-term rental permit", property.permitExpiration),
                 ("insurance policy", property.insuranceExpiration)
@@ -191,6 +192,8 @@ public final class NotificationService {
         propertyName: String,
         headroomDays: Int
     ) async {
+        guard authorizationStatus == .authorized || authorizationStatus == .provisional else { return }
+
         let content = UNMutableNotificationContent()
         content.title = "\(propertyName): personal use limit close"
         content.body = headroomDays > 0
@@ -205,6 +208,33 @@ public final class NotificationService {
             trigger: UNTimeIntervalNotificationTrigger(timeInterval: 2, repeats: false)
         )
         try? await center.add(request)
+    }
+
+    /// A next-morning nudge to photograph a receipt while it still exists.
+    public func remindMissingReceipt(
+        vendor: String,
+        amount: Decimal,
+        currencyCode: String
+    ) async {
+        guard authorizationStatus == .authorized || authorizationStatus == .provisional else { return }
+
+        let content = UNMutableNotificationContent()
+        content.title = "Receipt still needed"
+        content.body = "\(Fmt.currency(amount, code: currencyCode, hideCents: true)) to \(vendor.isEmpty ? "a vendor" : vendor) has no receipt attached. Substantiation is required at $75 and above."
+        content.sound = .default
+        content.categoryIdentifier = NotificationCategoryID.missingReceipts
+
+        let tomorrow = DateMath.adding(days: 1, to: Date())
+        guard let fireDate = at(hour: 10, on: tomorrow) else { return }
+        let components = DateMath.calendar.dateComponents([.year, .month, .day, .hour, .minute], from: fireDate)
+
+        let request = UNNotificationRequest(
+            identifier: "\(NotificationCategoryID.missingReceipts).\(UUID().uuidString)",
+            content: content,
+            trigger: UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+        )
+        try? await center.add(request)
+        await refreshStatus()
     }
 
     private func at(hour: Int, on date: Date) -> Date? {

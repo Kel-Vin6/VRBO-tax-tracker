@@ -15,6 +15,7 @@ struct PersonalUseEditorView: View {
     @Environment(\.modelContext) private var context
     @Environment(AppState.self) private var appState
     @Environment(AppSettings.self) private var settings
+    @Environment(NotificationService.self) private var notifications
 
     @Query(sort: \Property.sortIndex) private var properties: [Property]
 
@@ -196,8 +197,34 @@ struct PersonalUseEditorView: View {
         target.notes = notes
 
         try? context.save()
+        warnIfNearingLimit()
         Haptics.play(.success)
         dismiss()
+    }
+
+    /// Fires once the property is within a few days of losing rental-property
+    /// treatment, which is the point at which a cancelled owner stay is still
+    /// worth more than the stay itself.
+    private func warnIfNearingLimit() {
+        guard settings.notifyPersonalUseThreshold, kind.countsAsPersonalUse, let property else { return }
+
+        let updated = PersonalUseEngine.analyze(
+            bookings: property.bookingList,
+            personalUse: property.personalUseList,
+            year: appState.taxYear,
+            propertyID: property.id,
+            daysAvailable: property.daysAvailablePerYear
+        )
+        guard updated.fairRentalDays > 0, updated.headroomDays <= 5 else { return }
+
+        let name = property.displayName
+        let headroom = updated.headroomDays
+        Task {
+            await notifications.notifyPersonalUseThreshold(
+                propertyName: name,
+                headroomDays: headroom
+            )
+        }
     }
 
     private func deleteEntry() {

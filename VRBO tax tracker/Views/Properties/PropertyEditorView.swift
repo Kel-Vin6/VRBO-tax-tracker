@@ -13,6 +13,7 @@ struct PropertyEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
     @Environment(AppSettings.self) private var settings
+    @Environment(NotificationService.self) private var notifications
 
     @Query(sort: \Property.sortIndex) private var properties: [Property]
 
@@ -385,6 +386,11 @@ struct PropertyEditorView: View {
         target.notes = notes
 
         try? context.save()
+
+        if settings.notifyPermitExpiry, hasPermitExpiry || hasInsuranceExpiry {
+            Task { await notifications.schedulePermitReminders(for: [target]) }
+        }
+
         Haptics.play(.success)
         dismiss()
     }

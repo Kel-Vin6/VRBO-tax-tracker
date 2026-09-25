@@ -21,7 +21,7 @@ public enum RecurringExpenseRunner {
         guard settings.autoRunRecurringRules else { return 0 }
 
         let descriptor = FetchDescriptor<RecurringExpenseRule>(
-            predicate: #Predicate { $0.isEnabled && $0.autoPost }
+            predicate: #Predicate<RecurringExpenseRule> { $0.isEnabled && $0.autoPost }
         )
         guard let rules = try? context.fetch(descriptor) else { return 0 }
 
@@ -46,7 +46,7 @@ public enum RecurringExpenseRunner {
     /// Rules that are due but waiting for the user to confirm them.
     public static func pendingRules(context: ModelContext) -> [RecurringExpenseRule] {
         let descriptor = FetchDescriptor<RecurringExpenseRule>(
-            predicate: #Predicate { $0.isEnabled }
+            predicate: #Predicate<RecurringExpenseRule> { $0.isEnabled }
         )
         let rules = (try? context.fetch(descriptor)) ?? []
         return rules.filter { $0.isDue && !$0.autoPost }
